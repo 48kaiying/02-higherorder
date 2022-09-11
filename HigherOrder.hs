@@ -877,3 +877,15 @@ We'll see some other similar patterns later on.
 [4]: http://en.wikipedia.org/wiki/MapReduce "MapReduce"
 
 -}
+
+f :: [Char] -> [Char]
+f = \x -> 'a' : x
+
+g :: String -> String
+g = append "a" where
+      append :: String -> String -> String
+      append x y = x ++ y
+
+
+h :: (Bool -> a) -> [a]
+h x = [x True, x False]
