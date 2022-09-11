@@ -42,7 +42,7 @@ Or you can make a list containing the functions
 -}
 
 funs :: [Int -> Int]
-funs = undefined
+funs = [plus1, minus1]
 
 {-
 Taking Functions as Input
@@ -146,6 +146,11 @@ plusn n = f
   where
     f x = x + n
 
+minusn :: Int -> (Int -> Int)
+minusn n = f
+  where
+    f x = x - n
+
 {-
 That is, `plusn` returns a function `f` which itself
 takes as input an integer `x` and adds `n` to it. Lets use it
@@ -157,6 +162,9 @@ plus10 = plusn 10
 minus20 :: Int -> Int
 minus20 = plusn (-20)
 
+minus40 :: Int -> Int
+minus40 = minusn 40
+
 {-
 Note the types of the above are `Int -> Int`.  That is, `plus10` and
 `minus20` are functions that take in an integer and return an integer
@@ -164,12 +172,17 @@ Note the types of the above are `Int -> Int`.  That is, `plus10` and
 -}
 
 -- >>> plus10 3
+-- 13
+
+-- >>> minus40 60
+-- 20
 
 {-
 
 -}
 
 -- >>> plusn 10 3
+-- 13
 
 {-
 Partial Application
@@ -254,7 +267,7 @@ arguments before substituting them into the body of a defined function.
 
     doTwicePlus20 0 == doTwice (plus 20) 0        {- unfold doTwice -}
                     == (plus 20) ((plus 20) 0)
-                    ... undefined (fill this part in) ...
+                    == (plus 20) (20 + 0) // tbh not sure lmao
                     == 20 + 20 + 0
                     == 40
 
@@ -417,7 +430,7 @@ following test passes.
 -}
 
 singleton :: a -> [a]
-singleton = undefined
+singleton x = [x]
 
 singletonTest :: Test
 singletonTest = singleton True ~?= [True]
@@ -479,11 +492,11 @@ ex1 :: (a -> a) -> a -> a
 ex1 x y = doTwice doTwice x y
 
 {-
-
+Calls function x four times on operand y
 -}
 
 ex1Test :: Test
-ex1Test = undefined
+ex1Test = ex1 (+ 100) 0 ~?= 400
 
 {-
 Polymorphic Data Structures
@@ -647,7 +660,7 @@ toUpperString' :: String -> String
 toUpperString' xs = map toUpper xs
 
 shiftPoly' :: XY -> Polygon -> Polygon
-shiftPoly' d = undefined
+shiftPoly' d xs = map (shiftXY d) xs
 
 {-
 Much better.  But let's make sure our refactoring didn't break anything!
@@ -693,7 +706,14 @@ We can write this more cleanly with map, of course:
 -}
 
 listIncr' :: [Int] -> [Int]
-listIncr' = undefined
+listIncr' xs = map (\x -> x + 1) xs
+
+testIncr :: Test
+testIncr =
+  TestList
+    [ listIncr [1, 2, 3] ~?= [2, 3, 4],
+      listIncr [1, 2, 3] ~?= listIncr' [1, 2, 3]
+    ]
 
 {-
 Computation Pattern: Folding
@@ -771,15 +791,18 @@ from our list-length function?
 -}
 
 len' :: [a] -> Int
-len' = undefined
+len' = foldr (\_ x -> x + 1) 0
 
 {-
 Once you have defined `len` in this way, see if you can trace how it
 works on a small example:
 
 ~~~~~~~~~
-len' (1:2:[]) == ...
-       ...
+len' (1:2:[]) == f 1 (foldr f base 2:[])
+              == f 1 (f 2 ([] f 0))
+              == f 1 (f 2 ((\_ 0 -> 0 + 1)))
+              == f 1 ((\_ ))
+       ... ???? huh
               == 2
 ~~~~~~~~~
 
@@ -788,10 +811,10 @@ Or, how would you use foldr to eliminate the recursion from this?
 
 factorial :: Int -> Int
 factorial 0 = 1
-factorial n = n * factorial (n -1)
+factorial n = n * factorial (n - 1)
 
 factorial' :: Int -> Int
-factorial' n = undefined
+factorial' n = foldr (*) 1 [1 .. n]
 
 {-
 OK, one more.  The standard list library function `filter` has this
@@ -816,7 +839,7 @@ testFilter =
 Can we implement filter using foldr?  Sure!
 -}
 
-filter pred = undefined
+filter pred = foldr (\x acc -> if pred x then x : acc else acc) []
 
 runTests :: IO Counts
 runTests = runTestTT $ TestList [testMap, testFoldr, testFilter]
